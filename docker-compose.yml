@@ -1,0 +1,36 @@
+
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: wind-analytics-backend
+    env_file:
+      - ./.env
+    environment:
+      ELEXON_BASE_URL: https://data.elexon.co.uk/bmrs/api/v1
+      CORS_ORIGINS: http://localhost:5173
+      ENVIRONMENT: development
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    restart: unless-stopped
+
+  frontend:
+    image: node:22-alpine
+    container_name: wind-analytics-frontend
+    working_dir: /app
+    command: sh -c "npm ci && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  frontend_node_modules:
